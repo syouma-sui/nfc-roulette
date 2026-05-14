@@ -141,6 +141,11 @@
 
       button.disabled = true;
 
+fetch("https://script.google.com/macros/s/AKfycbwdvJDkSjhhet_xW2QGj2yGpS_vvscZJMrCBc8COTGsmsOChLJoyTwkSPSo6Lm-FuQl/exec", {
+  method: "POST"
+});
+
+localStorage.setItem("playedToday", "yes");
       localStorage.setItem("playedToday", "yes");
 
       coupon.style.display = "none";
