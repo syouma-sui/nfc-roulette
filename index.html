@@ -115,13 +115,19 @@
   "🎁 トッピング無料",
   "😳 はずれ...でもありがとう！"
     ];
-
+window.onload = function () {
+  if (localStorage.getItem("playedToday") === "yes") {
+    document.getElementById("spinButton").disabled = true;
+    document.getElementById("spinButton").innerText = "本日は参加済みです";
+  }
+};
     function spinRoulette() {
       const result = document.getElementById("result");
       const button = document.getElementById("spinButton");
       const coupon = document.getElementById("couponCode");
 
       button.disabled = true;
+      localStorage.setItem("playedToday", "yes");
       coupon.style.display = "none";
       result.classList.add("spinning");
       result.textContent = "抽選中...";
