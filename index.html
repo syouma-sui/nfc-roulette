@@ -4,153 +4,178 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NFC来店ルーレット</title>
+
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: sans-serif;
       background: linear-gradient(135deg, #111, #333);
-      color: #fff;
+      color: white;
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       padding: 20px;
     }
+
     .card {
+      background: rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 32px;
       width: 100%;
       max-width: 420px;
-      background: #fff;
-      color: #111;
-      border-radius: 28px;
-      padding: 28px 22px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
     }
-    .label {
-      font-size: 13px;
-      color: #777;
-      letter-spacing: 0.12em;
-      margin-bottom: 8px;
-    }
+
     h1 {
-      margin: 0 0 22px;
-      font-size: 30px;
-      line-height: 1.2;
+      margin-bottom: 12px;
     }
-    .roulette-box {
-      background: #111;
-      color: #fff;
-      border-radius: 22px;
-      min-height: 150px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 22px;
-      font-size: 22px;
-      font-weight: 800;
-      margin-bottom: 22px;
-      white-space: pre-line;
-      transition: transform 0.2s ease, opacity 0.2s ease;
+
+    p {
+      opacity: 0.8;
     }
-    .spinning {
-      animation: shake 0.08s infinite;
-      opacity: 0.85;
+
+    #result {
+      margin: 28px 0;
+      font-size: 28px;
+      font-weight: bold;
+      min-height: 50px;
     }
-    @keyframes shake {
-      0% { transform: translateX(-3px) rotate(-1deg); }
-      50% { transform: translateX(3px) rotate(1deg); }
-      100% { transform: translateX(-3px) rotate(-1deg); }
-    }
+
     button {
-      width: 100%;
       border: none;
-      background: #111;
-      color: #fff;
+      padding: 16px 24px;
+      border-radius: 16px;
       font-size: 18px;
-      font-weight: 700;
-      border-radius: 18px;
-      padding: 16px;
       cursor: pointer;
+      background: #00c896;
+      color: white;
+      width: 100%;
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .note {
+
+    button:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+
+    .coupon {
       margin-top: 20px;
-      font-size: 14px;
-      color: #666;
-      line-height: 1.7;
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffd54f;
     }
-    .coupon-code {
-      margin-top: 14px;
-      padding: 12px;
-      border: 1px dashed #999;
-      border-radius: 14px;
-      font-weight: 700;
-      display: none;
+
+    .note {
+      margin-top: 24px;
+      font-size: 14px;
+      opacity: 0.7;
+      line-height: 1.8;
+    }
+
+    .spinning {
+      animation: flash 0.1s infinite;
+    }
+
+    @keyframes flash {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
     }
   </style>
 </head>
+
 <body>
+
   <div class="card">
-    <div class="label">NFC TOUCH BONUS</div>
-    <h1>🎰 来店ルーレット</h1>
+    <h1>🎯 NFC来店ルーレット</h1>
 
-    <div id="result" class="roulette-box">ボタンを押して抽選！</div>
+    <p>
+      NFCタップありがとうございます！<br>
+      1日1回チャレンジできます
+    </p>
 
-    <button id="spinButton" onclick="spinRoulette()">ルーレットを回す</button>
+    <div id="result">START</div>
 
-    <div id="couponCode" class="coupon-code">クーポンコード：NFC100</div>
+    <button id="spinButton" onclick="spinRoulette()">
+      ルーレットを回す
+    </button>
+
+    <div id="couponCode" class="coupon"></div>
 
     <div class="note">
-      📱 NFCタップ後にこの画面を表示<br />
+      📱 NFCタップ後にこの画面を表示<br>
       🎁 当選内容をスタッフへ提示してください
     </div>
   </div>
 
   <script>
-  const rewards = [
-  "☕ 次回ドリンク100円OFF",
-  "🍰 ミニスイーツ無料",
-  "🎉 ポイント2倍",
-  "🎁 トッピング無料",
-  "😳 はずれ...でもありがとう！"
+    const rewards = [
+      "☕ 次回ドリンク100円OFF",
+      "🍰 ミニスイーツ無料",
+      "🎉 ポイント2倍",
+      "🎁 トッピング無料",
+      "😳 はずれ...でもありがとう！"
     ];
-window.onload = function () {
-  if (localStorage.getItem("playedToday") === "yes") {
-    document.getElementById("spinButton").disabled = true;
-    document.getElementById("spinButton").innerText = "本日は参加済みです";
-  }
-};
+
+    window.onload = function () {
+      if (localStorage.getItem("playedToday") === "yes") {
+        document.getElementById("spinButton").disabled = true;
+        document.getElementById("spinButton").innerText = "本日は参加済みです";
+      }
+    };
+
     function spinRoulette() {
+
       const result = document.getElementById("result");
       const button = document.getElementById("spinButton");
       const coupon = document.getElementById("couponCode");
 
       button.disabled = true;
+
       localStorage.setItem("playedToday", "yes");
+
       coupon.style.display = "none";
+
       result.classList.add("spinning");
       result.textContent = "抽選中...";
 
       let count = 0;
+
       const interval = setInterval(() => {
-        result.textContent = rewards[Math.floor(Math.random() * rewards.length)];
+
+        result.textContent =
+          rewards[Math.floor(Math.random() * rewards.length)];
+
         count++;
 
         if (count > 18) {
-          clearInterval(interval);
-          const finalReward = rewards[Math.floor(Math.random() * rewards.length)];
-          result.classList.remove("spinning");
-          result.textContent = finalReward;
-          button.textContent = "もう一度回す";
-          button.disabled = false;
 
-          if (!finalReward.includes("はずれ")) {
-            coupon.style.display = "block";
-          }
+          clearInterval(interval);
+
+          result.classList.remove("spinning");
+
+          const finalReward =
+            rewards[Math.floor(Math.random() * rewards.length)];
+
+          result.textContent = finalReward;
+
+          coupon.style.display = "block";
+
+          coupon.textContent =
+            "クーポンコード：" +
+            Math.random().toString(36).substring(2,8).toUpperCase();
+
         }
+
       }, 100);
+
     }
   </script>
+
 </body>
 </html>
