@@ -1,4 +1,4 @@
-S<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
@@ -10,10 +10,10 @@ S<!DOCTYPE html>
       box-sizing: border-box;
     }
 
-    body
+    body {
       margin: 0;
       min-height: 100vh;
-      background: linear-gradient(135deg,#111,#333);
+      background: linear-gradient(135deg, #111, #333);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -27,234 +27,185 @@ S<!DOCTYPE html>
       max-width: 420px;
       background: rgba(255,255,255,0.08);
       border-radius: 24px;
-      padding: 32px;
+      padding: 30px 20px;
       text-align: center;
       backdrop-filter: blur(10px);
     }
 
-    h1 {
+    .logo {
+      font-size: 50px;
       margin-bottom: 10px;
-      font-size: 42px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 36px;
     }
 
     p {
-      opacity: 0.8;
+      opacity: 0.9;
       line-height: 1.7;
     }
 
     input {
       width: 100%;
       padding: 16px;
+      border: none;
       border-radius: 14px;
-      border: none;
       margin-top: 20px;
-      font-size: 16px;
-    }
-
-    #result {
-      margin: 28px 0;
-      min-height: 50px;
-      font-size: 30px;
-      font-weight: bold;
-    }
-
-    button {
-      width: 100%;
-      border: none;
-      border-radius: 16px;
-      padding: 18px;
-      margin-top: 16px;
       font-size: 18px;
-      cursor: pointer;
-      color: white;
-      background: #00c896;
     }
 
-    button:disabled {
-      background: gray;
-      cursor: not-allowed;
+    .start {
+      margin-top: 25px;
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 14px;
+      background: #00c853;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .start:hover {
+      opacity: 0.9;
+    }
+
+    .result {
+      margin-top: 30px;
+      font-size: 32px;
+      font-weight: bold;
+      min-height: 50px;
     }
 
     .coupon {
       margin-top: 20px;
-      font-size: 20px;
-      color: #ffd54f;
+      padding: 16px;
+      border-radius: 14px;
+      background: gold;
+      color: black;
       font-weight: bold;
+      display: none;
+    }
+
+    .line-btn {
+      display: block;
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 14px;
+      background: #06c755;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 18px;
     }
 
     .note {
-      margin-top: 26px;
-      opacity: 0.7;
-      line-height: 1.8;
+      margin-top: 20px;
       font-size: 14px;
-    }
-
-    .spinning {
-      animation: flash 0.1s infinite;
-    }
-
-    @keyframes flash {
-      0% { opacity:0.3; }
-      50% { opacity:1; }
-      100% { opacity:0.3; }
+      opacity: 0.7;
+      line-height: 1.6;
     }
   </style>
 </head>
 
 <body>
 
-<div class="card">
+  <div class="card">
 
-  <h1>🎯</h1>
+    <div class="logo">🎯</div>
 
-  <h2>NFC来店ルーレット</h2>
+    <h1>NFC来店ルーレット</h1>
 
-  <p>
-    NFCタップありがとうございます！<br>
-    1日1回チャレンジできます
-  </p>
+    <p>
+      NFCタップありがとうございます！<br>
+      1日1回チャレンジできます
+    </p>
 
-  <input
-    type="text"
-    id="userName"
-    placeholder="名前を入力"
-  >
+    <input type="text" id="name" placeholder="名前を入力">
 
-  <div id="result">
-    START
-  </div>
-
-  <button
-    id="spinButton"
-    onclick="spinRoulette()"
-  >
-    ルーレットを回す
-  </button>
-
-  <a
-    href="https://lin.ee/TMxkwaW"
-    target="_blank"
-  >
-    <button
-      style="background:#06C755;"
-    >
-      LINE登録で特典UP
+    <button class="start" onclick="spinRoulette()">
+      START
     </button>
-  </a>
 
-  <div
-    id="couponCode"
-    class="coupon"
-  ></div>
+    <div class="result" id="result"></div>
 
-  <div class="note">
-    📱 NFCタップ後にこの画面を表示<br>
-    🎁 当選内容をスタッフへ提示してください
+    <div class="coupon" id="coupon"></div>
+
+    <a class="line-btn"
+       href="https://line.me/"
+       target="_blank">
+      LINE登録で特典UP
+    </a>
+
+    <div class="note">
+      📱 NFCタップ後にこの画面を表示<br>
+      🎁 当選内容をスタッフへ提示してください
+    </div>
+
   </div>
 
-</div>
+  <script>
 
-<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPDieUC_0fqEHvKF8ddXCnHIUozcyi34i9mpNoRmZloalSvOzTy76ZxzRq_UiEzny_Qw/exec";
 
-const rewards = [
-  "☕ 次回ドリンク100円OFF",
-  "🍰 ミニスイーツ無料",
-  "🎉 ポイント2倍",
-  "🎁 トッピング無料",
-  "😳 はずれ...でもありがとう！"
-];
+    const rewards = [
+      "🎉 10%OFF",
+      "☕ ドリンク無料",
+      "🍰 デザート無料",
+      "😢 はずれ…でもありがとう！"
+    ];
 
-window.onload = function () {
+    function spinRoulette() {
 
-  if (localStorage.getItem("playedToday") === "yes") {
+      const userName = document.getElementById("name").value;
 
-    document.getElementById("spinButton").disabled = true;
+      if (!userName) {
+        alert("名前を入力してください");
+        return;
+      }
 
-    document.getElementById("spinButton").innerText =
-      "本日は参加済みです";
-  }
-};
+      const result = document.getElementById("result");
+      const coupon = document.getElementById("coupon");
 
-function spinRoulette() {
+      result.textContent = "抽選中...";
+      coupon.style.display = "none";
 
-  const result =
-    document.getElementById("result");
+      setTimeout(() => {
 
-  const button =
-    document.getElementById("spinButton");
+        const finalReward =
+          rewards[Math.floor(Math.random() * rewards.length)];
 
-  const coupon =
-    document.getElementById("couponCode");
+        result.textContent = finalReward;
 
-  const userName =
-    document.getElementById("userName").value;
-
-  if (!userName) {
-    alert("名前を入力してください");
-    return;
-  }
-
-  button.disabled = true;
-
-  localStorage.setItem("playedToday","yes");
-
-  coupon.style.display = "none";
-
-  result.classList.add("spinning");
-
-  result.textContent = "抽選中...";
-
-  let count = 0;
-
-  const interval = setInterval(() => {
-
-    result.textContent =
-      rewards[
-        Math.floor(Math.random() * rewards.length)
-      ];
-
-    count++;
-
-    if (count > 18) {
-
-      clearInterval(interval);
-
-      result.classList.remove("spinning");
-
-      const finalReward =
-        rewards[
-          Math.floor(Math.random() * rewards.length)
-        ];
-
-      result.textContent = finalReward;
-
-      coupon.style.display = "block";
-
-      coupon.textContent =
-        "クーポンコード：" +
-        Math.random()
+        const code =
+          Math.random()
           .toString(36)
           .substring(2,8)
           .toUpperCase();
 
-       fetch("https://script.google.com/macros/s/AKfycbx7-0-A98ofIJG5nF33w-IAB2PO3q94CeKBtzbfPGSNy0eMlnVBokIyWxsx4XMWj1SnSQ/exec", {
-  method: "POST",
-  mode: "no-cors",
-  headers: {
-    "Content-Type": "text/plain"
-  },
-  body: JSON.stringify({
-    name: userName,
-    reward: finalReward
-  });
+        coupon.style.display = "block";
+        coupon.textContent = "クーポンコード：" + code;
 
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain"
+          },
+          body: JSON.stringify({
+            name: userName,
+            reward: finalReward,
+            coupon: code
+          })
+        });
+
+      }, 1000);
     }
 
-  },100);
-
-}
-
-</script>
+  </script>
 
 </body>
 </html>
