@@ -237,16 +237,17 @@ function spinRoulette() {
           .substring(2,8)
           .toUpperCase();
 
-        fetch(
-  "https://script.google.com/macros/s/AKfycbyPDieUC_0fqEHvKF8ddXCnHIUozcyi34i9mpNoRmZloalSvOzTy76ZxzRq_UiEzny_Qw/exec",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            name: userName,
-            reward: finalReward
-          })
-        }
-      );
+       fetch("https://script.google.com/macros/s/AKfycbx7-0-A98ofIJG5nF33w-IAB2PO3q94CeKBtzbfPGSNy0eMlnVBokIyWxsx4XMWj1SnSQ/exec", {
+  method: "POST",
+  mode: "no-cors",
+  headers: {
+    "Content-Type": "text/plain"
+  },
+  body: JSON.stringify({
+    name: userName,
+    reward: finalReward
+  });
+});
 
     }
 
