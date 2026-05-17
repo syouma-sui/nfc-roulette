@@ -33,13 +33,13 @@
     }
 
     .logo {
-      font-size: 50px;
+      font-size: 48px;
       margin-bottom: 10px;
     }
 
     h1 {
       margin: 0 0 20px;
-      font-size: 34px;
+      font-size: 32px;
     }
 
     p {
@@ -75,6 +75,11 @@
     .admin {
       background: #555;
       font-size: 16px;
+    }
+
+    .disabled {
+      background: #888;
+      cursor: not-allowed;
     }
 
     .result {
@@ -125,6 +130,7 @@
       font-size: 14px;
       opacity: 0.75;
       line-height: 1.7;
+      word-break: break-all;
     }
   </style>
 </head>
@@ -150,7 +156,7 @@
     <input type="text" id="name" placeholder="名前を入力">
     <input type="text" id="loginId" placeholder="ログインID・電話番号下4桁など">
 
-    <button class="start" onclick="spinRoulette()">
+    <button class="start" id="startBtn" onclick="spinRoulette()">
       START
     </button>
 
@@ -158,7 +164,7 @@
 
     <div class="coupon" id="coupon"></div>
 
-    <a class="line-btn" id="lineBtn" href="#" target="_blank">
+    <a class="line-btn" id="lineBtn" href="https://line.me/" target="_blank">
       LINE登録で特典UP
     </a>
 
@@ -179,7 +185,14 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPDieUC_0fqEHvKF8ddXCnHIUozcyi34i9mpNoRmZloalSvOzTy76ZxzRq_UiEzny_Qw/exec";
 
-    const DEFAULT_LINE_URL = "https://line.me/";
+    const LINE_URL = "https://line.me/";
+
+    const prizes = [
+      { reward: "🎉 10%OFF", weight: 20 },
+      { reward: "☕ ドリンク無料", weight: 15 },
+      { reward: "🍰 デザート無料", weight: 10 },
+      { reward: "😢 はずれ…でもありがとう！", weight: 55 }
+    ];
 
     const urlParams = new URLSearchParams(window.location.search);
     const storeFromUrl = urlParams.get("store");
@@ -194,6 +207,29 @@
     if (savedName) document.getElementById("name").value = savedName;
     if (savedLoginId) document.getElementById("loginId").value = savedLoginId;
 
+    function getToday() {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+
+    function pickReward() {
+      const total = prizes.reduce((sum, p) => sum + p.weight, 0);
+      let rand = Math.random() * total;
+
+      for (const prize of prizes) {
+        if (rand < prize.weight) {
+          return prize.reward;
+        }
+        rand -= prize.weight;
+      }
+
+      return prizes[prizes.length - 1].reward;
+    }
+
+    function makeCoupon() {
+      return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
     function spinRoulette() {
       const name = document.getElementById("name").value.trim();
       const loginId = document.getElementById("loginId").value.trim();
@@ -202,6 +238,7 @@
       const result = document.getElementById("result");
       const coupon = document.getElementById("coupon");
       const lineBtn = document.getElementById("lineBtn");
+      const startBtn = document.getElementById("startBtn");
 
       if (!name) {
         alert("名前を入力してください");
@@ -213,6 +250,15 @@
         return;
       }
 
+      const today = getToday();
+      const playKey = "played_" + store + "_" + loginId + "_" + today;
+
+      if (localStorage.getItem(playKey)) {
+        result.textContent = "本日は参加済みです";
+        startBtn.classList.add("disabled");
+        return;
+      }
+
       localStorage.setItem("nfc_name", name);
       localStorage.setItem("nfc_loginId", loginId);
 
@@ -220,38 +266,36 @@
       coupon.style.display = "none";
       lineBtn.style.display = "none";
 
-      fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "text/plain"
-        },
-        body: JSON.stringify({
-          name: name,
-          loginId: loginId,
-          store: store
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.ok) {
-          result.textContent = data.message || "エラーが発生しました";
-          return;
-        }
+      setTimeout(() => {
+        const reward = pickReward();
+        const couponCode = makeCoupon();
 
-        result.innerHTML =
-          data.reward + "<br><span style='font-size:18px;'>来店回数：" + data.visitCount + "回</span>";
+        result.textContent = reward;
 
         coupon.style.display = "block";
-        coupon.textContent = "クーポンコード：" + data.coupon;
+        coupon.textContent = "クーポンコード：" + couponCode;
 
-        lineBtn.href = data.lineUrl || DEFAULT_LINE_URL;
+        lineBtn.href = LINE_URL;
         lineBtn.style.display = "block";
-      })
-      .catch(err => {
-        result.textContent = "通信エラー。もう一度お試しください。";
-        console.error(err);
-      });
+
+        localStorage.setItem(playKey, "true");
+
+        fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {
+            "Content-Type": "text/plain"
+          },
+          body: JSON.stringify({
+            store: store,
+            name: name,
+            loginId: loginId,
+            reward: reward,
+            coupon: couponCode
+          })
+        });
+
+      }, 1000);
     }
 
     function showAdminInfo() {
