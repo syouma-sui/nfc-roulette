@@ -24,7 +24,7 @@
 
     .card {
       width: 100%;
-      max-width: 420px;
+      max-width: 430px;
       background: rgba(255,255,255,0.08);
       border-radius: 24px;
       padding: 30px 20px;
@@ -39,7 +39,7 @@
 
     h1 {
       margin: 0 0 20px;
-      font-size: 36px;
+      font-size: 34px;
     }
 
     p {
@@ -47,41 +47,46 @@
       line-height: 1.7;
     }
 
-    input {
+    input, select {
       width: 100%;
-      padding: 16px;
+      padding: 15px;
       border: none;
       border-radius: 14px;
-      margin-top: 20px;
-      font-size: 18px;
+      margin-top: 14px;
+      font-size: 17px;
     }
 
-    .start {
-      margin-top: 25px;
+    button {
       width: 100%;
-      padding: 18px;
+      padding: 17px;
       border: none;
       border-radius: 14px;
-      background: #00c853;
+      margin-top: 18px;
       color: white;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
       cursor: pointer;
     }
 
-    .start:hover {
-      opacity: 0.9;
+    .start {
+      background: #00c853;
+    }
+
+    .admin {
+      background: #555;
+      font-size: 16px;
     }
 
     .result {
-      margin-top: 30px;
-      font-size: 32px;
+      margin-top: 28px;
+      font-size: 28px;
       font-weight: bold;
       min-height: 50px;
+      line-height: 1.5;
     }
 
     .coupon {
-      margin-top: 20px;
+      margin-top: 18px;
       padding: 16px;
       border-radius: 14px;
       background: gold;
@@ -91,7 +96,7 @@
     }
 
     .line-btn {
-      display: block;
+      display: none;
       margin-top: 20px;
       padding: 16px;
       border-radius: 14px;
@@ -102,11 +107,24 @@
       font-size: 18px;
     }
 
+    .qr {
+      margin-top: 20px;
+      background: white;
+      padding: 12px;
+      border-radius: 14px;
+      display: none;
+    }
+
+    .qr img {
+      width: 180px;
+      height: 180px;
+    }
+
     .note {
       margin-top: 20px;
       font-size: 14px;
-      opacity: 0.7;
-      line-height: 1.6;
+      opacity: 0.75;
+      line-height: 1.7;
     }
   </style>
 </head>
@@ -114,7 +132,6 @@
 <body>
 
   <div class="card">
-
     <div class="logo">🎯</div>
 
     <h1>NFC来店ルーレット</h1>
@@ -124,7 +141,14 @@
       1日1回チャレンジできます
     </p>
 
+    <select id="store">
+      <option value="honmachi">本町店</option>
+      <option value="namba">難波店</option>
+      <option value="umeda">梅田店</option>
+    </select>
+
     <input type="text" id="name" placeholder="名前を入力">
+    <input type="text" id="loginId" placeholder="ログインID・電話番号下4桁など">
 
     <button class="start" onclick="spinRoulette()">
       START
@@ -134,77 +158,119 @@
 
     <div class="coupon" id="coupon"></div>
 
-    <a class="line-btn"
-       href="https://line.me/"
-       target="_blank">
+    <a class="line-btn" id="lineBtn" href="#" target="_blank">
       LINE登録で特典UP
     </a>
 
-    <div class="note">
+    <div class="qr" id="qrBox">
+      <img id="qrImg" src="">
+    </div>
+
+    <button class="admin" onclick="showAdminInfo()">
+      店舗管理用QRを表示
+    </button>
+
+    <div class="note" id="note">
       📱 NFCタップ後にこの画面を表示<br>
       🎁 当選内容をスタッフへ提示してください
     </div>
-
   </div>
 
   <script>
-
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyPDieUC_0fqEHvKF8ddXCnHIUozcyi34i9mpNoRmZloalSvOzTy76ZxzRq_UiEzny_Qw/exec";
 
-    const rewards = [
-      "🎉 10%OFF",
-      "☕ ドリンク無料",
-      "🍰 デザート無料",
-      "😢 はずれ…でもありがとう！"
-    ];
+    const DEFAULT_LINE_URL = "https://line.me/";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const storeFromUrl = urlParams.get("store");
+
+    if (storeFromUrl) {
+      document.getElementById("store").value = storeFromUrl;
+    }
+
+    const savedName = localStorage.getItem("nfc_name");
+    const savedLoginId = localStorage.getItem("nfc_loginId");
+
+    if (savedName) document.getElementById("name").value = savedName;
+    if (savedLoginId) document.getElementById("loginId").value = savedLoginId;
 
     function spinRoulette() {
+      const name = document.getElementById("name").value.trim();
+      const loginId = document.getElementById("loginId").value.trim();
+      const store = document.getElementById("store").value;
 
-      const userName = document.getElementById("name").value;
+      const result = document.getElementById("result");
+      const coupon = document.getElementById("coupon");
+      const lineBtn = document.getElementById("lineBtn");
 
-      if (!userName) {
+      if (!name) {
         alert("名前を入力してください");
         return;
       }
 
-      const result = document.getElementById("result");
-      const coupon = document.getElementById("coupon");
+      if (!loginId) {
+        alert("ログインIDを入力してください");
+        return;
+      }
+
+      localStorage.setItem("nfc_name", name);
+      localStorage.setItem("nfc_loginId", loginId);
 
       result.textContent = "抽選中...";
       coupon.style.display = "none";
+      lineBtn.style.display = "none";
 
-      setTimeout(() => {
+      fetch(SCRIPT_URL, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "text/plain"
+        },
+        body: JSON.stringify({
+          name: name,
+          loginId: loginId,
+          store: store
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.ok) {
+          result.textContent = data.message || "エラーが発生しました";
+          return;
+        }
 
-        const finalReward =
-          rewards[Math.floor(Math.random() * rewards.length)];
-
-        result.textContent = finalReward;
-
-        const code =
-          Math.random()
-          .toString(36)
-          .substring(2,8)
-          .toUpperCase();
+        result.innerHTML =
+          data.reward + "<br><span style='font-size:18px;'>来店回数：" + data.visitCount + "回</span>";
 
         coupon.style.display = "block";
-        coupon.textContent = "クーポンコード：" + code;
+        coupon.textContent = "クーポンコード：" + data.coupon;
 
-        fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: {
-            "Content-Type": "text/plain"
-          },
-          body: JSON.stringify({
-            name: userName,
-            reward: finalReward,
-            coupon: code
-          })
-        });
-
-      }, 1000);
+        lineBtn.href = data.lineUrl || DEFAULT_LINE_URL;
+        lineBtn.style.display = "block";
+      })
+      .catch(err => {
+        result.textContent = "通信エラー。もう一度お試しください。";
+        console.error(err);
+      });
     }
 
+    function showAdminInfo() {
+      const store = document.getElementById("store").value;
+      const pageUrl = location.origin + location.pathname + "?store=" + store;
+      const qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(pageUrl);
+
+      const qrBox = document.getElementById("qrBox");
+      const qrImg = document.getElementById("qrImg");
+      const note = document.getElementById("note");
+
+      qrImg.src = qrUrl;
+      qrBox.style.display = "block";
+
+      note.innerHTML =
+        "店舗用URL：<br>" +
+        pageUrl +
+        "<br><br>このQRを印刷すれば店舗別に管理できます。";
+    }
   </script>
 
 </body>
